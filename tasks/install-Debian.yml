@@ -1,0 +1,17 @@
+---
+
+- name: Install libvirt
+  apt:
+    name: "{{ libvirt_package }}"
+    state: present
+
+- name: Install libvirt_extra_packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ libvirt_extra_packages }}"
+
+- name: Enable libvirt_service
+  service:
+    name: "{{ libvirt_service }}"
+    enabled: yes

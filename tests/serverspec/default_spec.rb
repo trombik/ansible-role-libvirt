@@ -6,15 +6,41 @@ extra_packages = []
 config_dir = "/etc/libvirt"
 service = "libvirtd"
 default_user = "root"
-default_group = "wheel"
+default_group = "root"
+hypervisor = "qemu"
 
 case os[:family]
 when "freebsd"
   config_dir = "/usr/local/etc/libvirt"
   extra_packages = ["grub2-bhyve"]
+  default_group = "wheel"
+  hypervisor = "bhyve"
+when "ubuntu"
+  extra_packages = ["qemu-kvm"]
+  package = "libvirt-bin"
 end
+libvirtd_conf = "#{config_dir}/libvirtd.conf"
 
 case os[:family]
+when "ubuntu"
+  describe file "/etc/default/libvirt-bin" do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by default_user }
+    it { should be_grouped_into default_group }
+    it { should be_mode 644 }
+    its(:content) { match(/^start_libvirtd="yes"$/) }
+    its(:content) { match(%r{^libvirtd_opts="--config #{libvirtd_conf}"$}) }
+  end
+when "redhat"
+  describe file "/etc/sysconfig/libvirtd" do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by default_user }
+    it { should be_grouped_into default_group }
+    it { should be_mode 644 }
+    its(:content) { should match(%r{^LIBVIRTD_ARGS="--config /etc/libvirt/libvirtd.conf"$}) }
+  end
 when "freebsd"
   describe file "/etc/rc.conf.d/#{service}" do
     it { should exist }
@@ -22,7 +48,7 @@ when "freebsd"
     it { should be_owned_by default_user }
     it { should be_grouped_into default_group }
     it { should be_mode 644 }
-    its(:content) { should match(%r{^libvirtd_flags="--config #{config_dir}/libvirtd.conf"$}) }
+    its(:content) { should match(%r{^libvirtd_flags="--config #{libvirtd_conf}"$}) }
   end
 end
 
@@ -56,8 +82,22 @@ describe file "#{config_dir}/libvirtd.conf" do
   it { should be_file }
   it { should be_mode 640 }
   it { should be_owned_by default_user }
-  it { should be_grouped_into "operator" }
+  it { should be_grouped_into os[:family] == "redhat" ? "daemon" : "operator" }
   its(:content) { should match(/^log_level = 2$/) }
+  case os[:family]
+  when "ubuntu"
+    its(:content) { should match(/^unix_sock_group = "libvirtd"$/) }
+    its(:content) { should match(/^unix_sock_ro_perms = "0777"$/) }
+    its(:content) { should match(/^unix_sock_rw_perms = "0770"$/) }
+    its(:content) { should match(/^auth_unix_ro = "none"$/) }
+    its(:content) { should match(/^auth_unix_rw = "none"$/) }
+  when "redhat"
+    its(:content) { should match(/^unix_sock_group = "libvirt"$/) }
+    its(:content) { should match(/^unix_sock_ro_perms = "0777"$/) }
+    its(:content) { should match(/^unix_sock_rw_perms = "0770"$/) }
+    its(:content) { should match(/^auth_unix_ro = "none"$/) }
+    its(:content) { should match(/^auth_unix_rw = "none"$/) }
+  end
 end
 
 describe service(service) do
@@ -65,9 +105,9 @@ describe service(service) do
   it { should be_running }
 end
 
-describe command "virt-admin server-list" do
+describe command "virsh -c #{hypervisor}:///system version" do
   its(:exit_status) { should eq 0 }
   its(:stderr) { should eq "" }
-  its(:stdout) { should match(/^\s*\d+\s+libvirtd\s*$/) }
-  its(:stdout) { should match(/^\s*\d+\s+admin\s*$/) }
+  its(:stdout) { should match(/^Compiled against library: libvirt \d+\.\d+\.\d+$/) }
+  its(:stdout) { should match(/^Running hypervisor: #{hypervisor.upcase} \d+\.\d+\.\d+$/) }
 end

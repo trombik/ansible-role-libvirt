@@ -1,0 +1,3 @@
+__libvirt_package: libvirt
+__libvirt_service: libvirtd
+__libvirt_conf_dir: /etc/libvirt
