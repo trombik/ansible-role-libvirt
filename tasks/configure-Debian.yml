@@ -1,0 +1,8 @@
+---
+
+- name: Create /etc/default/libvirt-bin
+  template:
+    src: Ubuntu.default.j2
+    dest: /etc/default/libvirt-bin
+    validate: sh -n %s
+  notify: Restart libvirtd
