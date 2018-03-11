@@ -2,4 +2,3 @@
   roles:
     - ansible-role-libvirt
   vars:
-    libvirt_config: ""

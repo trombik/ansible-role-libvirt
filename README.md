@@ -1,6 +1,6 @@
 # ansible-role-libvirt
 
-A brief description of the role goes here.
+Install `libvirt`
 
 # Requirements
 
@@ -8,9 +8,16 @@ None
 
 # Role Variables
 
-| variable | description | default |
+| Variable | Description | Default |
 |----------|-------------|---------|
+| `libvirt_package` | | `{{ __libvirt_package }}` |
+| `libvirt_extra_packages` | | `[]` |
 
+## FreeBSD
+
+| Variable | Default |
+|----------|---------|
+| `__libvirt_package` | `libvirt` |
 
 # Dependencies
 
@@ -19,6 +26,10 @@ None
 # Example Playbook
 
 ```yaml
+- hosts: localhost
+  roles:
+    - ansible-role-libvirt
+  vars:
 ```
 
 # License
