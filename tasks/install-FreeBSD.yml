@@ -2,5 +2,16 @@
 
 - name: Install libvirt
   pkgng:
-    name: libvirt
+    name: "{{ libvirt_package }}"
     state: present
+
+- name: Install libvirt_extra_packages
+  pkgng:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ libvirt_extra_packages }}"
+
+- name: Enable libvirt_service
+  service:
+    name: "{{ libvirt_service }}"
+    enabled: yes

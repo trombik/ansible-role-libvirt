@@ -1,2 +1,3 @@
-__libvirt_db_dir: /var/db/libvirt
+__libvirt_package: libvirt
+__libvirt_service: libvirtd
 __libvirt_conf_dir: /usr/local/etc/libvirt

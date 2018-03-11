@@ -1,8 +1,6 @@
-libvirt_user: libvirt
-libvirt_group: libvirt
-libvirt_log_dir: /var/log/libvirt
-libvirt_db_dir: "{{ __libvirt_db_dir }}"
-libvirt_service: libvirt
+libvirt_package: "{{ __libvirt_package }}"
+libvirt_extra_packages: []
+libvirt_service: "{{ __libvirt_service }}"
 libvirt_conf_dir: "{{ __libvirt_conf_dir }}"
-libvirt_conf_file: "{{ __libvirt_conf_dir }}/libvirt.conf"
+libvirt_config: []
 libvirt_flags: ""

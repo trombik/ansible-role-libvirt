@@ -3,35 +3,37 @@
 
 - include_vars: "{{ ansible_os_family }}.yml"
 
+- name: Assert libvirt_config has valid values
+  assert:
+    that:
+      - "'name' in item"
+      - "'state' in item"
+      - item.state == 'absent' or item.state == 'present'
+  with_items: "{{ libvirt_config }}"
+
 - include: "install-{{ ansible_os_family }}.yml"
 
-- name: Create log directory
-  file:
-    path: "{{ libvirt_log_dir }}"
-    mode: 0755
-    owner: "{{ libvirt_user }}"
-    group: "{{ libvirt_group }}"
-    state: directory
-  notify: Restart libvirt
+- include: "configure-{{ ansible_os_family }}.yml"
 
-- name: Create db directory
+- name: Remove files with `absent` in libvirt_config
   file:
-    path: "{{ libvirt_db_dir }}"
-    mode: 0755
-    owner: "{{ libvirt_user }}"
-    group: "{{ libvirt_group }}"
-    state: directory
-  notify: Restart libvirt
+    path: "{{ libvirt_conf_dir }}/{{ item.name }}"
+    state: absent
+  with_items: "{{ libvirt_config | selectattr('state', 'equalto', 'absent') | list }}"
+  notify: Restart libvirtd
 
-- name: Create libvirt.conf
+- name: Create files with `present` in libvirt_config
   template:
-    src: libvirt.conf.j2
-    dest: "{{ libvirt_conf_file }}"
-    validate: echo %s
-  notify: Restart libvirt
+    src: config.conf.j2
+    dest: "{{ libvirt_conf_dir }}/{{ item.name }}"
+    mode: "{% if 'mode' in item %}{{ item.mode }}{% else %}{{ omit }}{% endif %}"
+    owner: "{% if 'owner' in item %}{{ item.owner }}{% else %}{{ omit }}{% endif %}"
+    group: "{% if 'group' in item %}{{ item.group }}{% else %}{{ omit }}{% endif %}"
+    # XXX libvirtd does not have options for validation
+  notify: Restart libvirtd
+  with_items: "{{ libvirt_config | selectattr('state', 'equalto', 'present') | list }}"
 
-- name: Start libvirt
+- name: Start libvirt_service
   service:
     name: "{{ libvirt_service }}"
-    enabled: true
-    state: started
+    state: running

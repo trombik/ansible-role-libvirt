@@ -2,57 +2,72 @@ require "spec_helper"
 require "serverspec"
 
 package = "libvirt"
-service = "libvirt"
-config  = "/etc/libvirt/libvirt.conf"
-user    = "libvirt"
-group   = "libvirt"
-ports   = [PORTS]
-log_dir = "/var/log/libvirt"
-db_dir  = "/var/lib/libvirt"
+extra_packages = []
+config_dir = "/etc/libvirt"
+service = "libvirtd"
+default_user = "root"
+default_group = "wheel"
 
 case os[:family]
 when "freebsd"
-  config = "/usr/local/etc/libvirt.conf"
-  db_dir = "/var/db/libvirt"
+  config_dir = "/usr/local/etc/libvirt"
+  extra_packages = ["grub2-bhyve"]
+end
+
+case os[:family]
+when "freebsd"
+  describe file "/etc/rc.conf.d/#{service}" do
+    it { should exist }
+    it { should be_file }
+    it { should be_owned_by default_user }
+    it { should be_grouped_into default_group }
+    it { should be_mode 644 }
+    its(:content) { should match(%r{^libvirtd_flags="--config #{config_dir}/libvirtd.conf"$}) }
+  end
+end
+
+describe file config_dir do
+  it { should exist }
+  it { should be_directory }
 end
 
 describe package(package) do
   it { should be_installed }
 end
 
-describe file(config) do
-  it { should be_file }
-  its(:content) { should match Regexp.escape("libvirt") }
-end
-
-describe file(log_dir) do
-  it { should exist }
-  it { should be_mode 755 }
-  it { should be_owned_by user }
-  it { should be_grouped_into group }
-end
-
-describe file(db_dir) do
-  it { should exist }
-  it { should be_mode 755 }
-  it { should be_owned_by user }
-  it { should be_grouped_into group }
-end
-
-case os[:family]
-when "freebsd"
-  describe file("/etc/rc.conf.d/libvirt") do
-    it { should be_file }
+extra_packages.each do |p|
+  describe package(p) do
+    it { should be_installed }
   end
+end
+
+describe command "virsh --version" do
+  its(:exit_status) { should eq 0 }
+  its(:stderr) { should eq "" }
+  its(:stdout) { should match(/^\d+\.\d+\.\d+$/) }
+end
+
+describe file "#{config_dir}/removeme.conf" do
+  it { should_not exist }
+end
+
+describe file "#{config_dir}/libvirtd.conf" do
+  it { should exist }
+  it { should be_file }
+  it { should be_mode 640 }
+  it { should be_owned_by default_user }
+  it { should be_grouped_into "operator" }
+  its(:content) { should match(/^log_level = 2$/) }
 end
 
 describe service(service) do
-  it { should be_running }
   it { should be_enabled }
+  it { should be_running }
 end
 
-ports.each do |p|
-  describe port(p) do
-    it { should be_listening }
-  end
+describe command "virt-admin server-list" do
+  its(:exit_status) { should eq 0 }
+  its(:stderr) { should eq "" }
+  its(:stdout) { should match(/^\s*\d+\s+libvirtd\s*$/) }
+  its(:stdout) { should match(/^\s*\d+\s+admin\s*$/) }
 end

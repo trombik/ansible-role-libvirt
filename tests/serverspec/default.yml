@@ -2,4 +2,16 @@
   roles:
     - ansible-role-libvirt
   vars:
-    libvirt_config: ""
+    libvirt_config:
+      - name: removeme.conf
+        state: absent
+      - name: libvirtd.conf
+        state: present
+        mode: 640
+        owner: root
+        group: operator
+        content: |
+          log_level = 2
+    libvirt_extra_packages:
+      - sysutils/grub2-bhyve
+    libvirt_flags: "--config {{ libvirt_conf_dir }}/libvirtd.conf"
