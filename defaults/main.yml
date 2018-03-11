@@ -1,2 +1,6 @@
 libvirt_package: "{{ __libvirt_package }}"
 libvirt_extra_packages: []
+libvirt_service: "{{ __libvirt_service }}"
+libvirt_conf_dir: "{{ __libvirt_conf_dir }}"
+libvirt_config: []
+libvirt_flags: ""

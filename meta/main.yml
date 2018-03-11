@@ -1,8 +1,8 @@
 ---
 galaxy_info:
   author: Tomoyuki Sakurai
-  description: Configures something
-  company: Reallyenglish
+  description: Install libvirt
+  company: N/A
   license: BSD
   min_ansible_version: 2.0
   platforms:
@@ -24,6 +24,5 @@ galaxy_info:
 
   galaxy_tags:
     - libvirt
-    - qemu
 #dependencies:
 #  - foo.role
