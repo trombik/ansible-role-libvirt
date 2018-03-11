@@ -1,0 +1,2 @@
+__libvirt_db_dir: /var/db/libvirt
+__libvirt_conf_dir: /usr/local/etc/libvirt
