@@ -26,4 +26,12 @@
           auth_unix_rw = "none"
           {% endif %}
     libvirt_extra_packages: "{% if ansible_os_family == 'FreeBSD' %}[ 'sysutils/grub2-bhyve' ]{% elif ansible_os_family == 'Debian' %}[ 'qemu-kvm' ]{% elif ansible_os_family == 'RedHat' %}[ 'qemu-kvm' ]{% endif %}"
-    libvirt_flags: "--config {{ libvirt_conf_dir }}/libvirtd.conf"
+
+    freebsd_flags:
+      libvirtd_flags: "--config {{ libvirt_conf_dir }}/libvirtd.conf"
+    ubuntu_flags:
+      start_libvirtd: "yes"
+      libvirtd_opts: "--config {{ libvirt_conf_dir }}/libvirtd.conf"
+    redhat_flags:
+      LIBVIRTD_ARGS: "--config {{ libvirt_conf_dir }}/libvirtd.conf"
+    libvirt_flags: "{% if ansible_os_family == 'FreeBSD' %}{{ freebsd_flags }}{% elif ansible_os_family == 'Debian' %}{{ ubuntu_flags }}{% elif ansible_os_family == 'RedHat' %}{{ redhat_flags }}{% endif %}"

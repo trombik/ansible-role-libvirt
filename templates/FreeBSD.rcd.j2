@@ -1,3 +1,5 @@
 # Managed by ansible
 
-libvirtd_flags="{{ libvirt_flags }}"
+{% for k, v in libvirt_flags | dictsort() %}
+{{ k }}="{{ v }}"
+{% endfor %}

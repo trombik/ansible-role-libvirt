@@ -14,13 +14,12 @@ galaxy_info:
 #    versions:
 #    - 6.0
 #    - 6.1
-#  - name: Ubuntu
-#    versions:
-#    - trusty
-#    - xenial
-#  - name: EL
-#    versions:
-#    - 7
+  - name: Ubuntu
+    versions:
+    - xenial
+  - name: EL
+    versions:
+    - 7
 
   galaxy_tags:
     - libvirt
