@@ -30,7 +30,7 @@ when "ubuntu"
     it { should be_grouped_into default_group }
     it { should be_mode 644 }
     its(:content) { match(/^start_libvirtd="yes"$/) }
-    its(:content) { match(%r{^libvirtd_opts="--config #{libvirtd_conf}"$}) }
+    its(:content) { match(/^libvirtd_opts="--config #{libvirtd_conf}"$/) }
   end
 when "redhat"
   describe file "/etc/sysconfig/libvirtd" do
@@ -39,7 +39,7 @@ when "redhat"
     it { should be_owned_by default_user }
     it { should be_grouped_into default_group }
     it { should be_mode 644 }
-    its(:content) { should match(%r{^LIBVIRTD_ARGS="--config /etc/libvirt/libvirtd.conf"$}) }
+    its(:content) { should match(/^LIBVIRTD_ARGS="--config #{libvirtd_conf}"$/) }
   end
 when "freebsd"
   describe file "/etc/rc.conf.d/#{service}" do
@@ -48,7 +48,7 @@ when "freebsd"
     it { should be_owned_by default_user }
     it { should be_grouped_into default_group }
     it { should be_mode 644 }
-    its(:content) { should match(%r{^libvirtd_flags="--config #{libvirtd_conf}"$}) }
+    its(:content) { should match(/^libvirtd_flags="--config #{libvirtd_conf}"$/) }
   end
 end
 
