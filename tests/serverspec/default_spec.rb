@@ -7,6 +7,7 @@ config_dir = "/etc/libvirt"
 service = "libvirtd"
 default_user = "root"
 default_group = "root"
+group = "libvirt"
 hypervisor = "qemu"
 
 case os[:family]
@@ -15,11 +16,20 @@ when "freebsd"
   extra_packages = ["grub2-bhyve"]
   default_group = "wheel"
   hypervisor = "bhyve"
+  group = "wheel"
 when "ubuntu"
   extra_packages = ["qemu-kvm"]
   package = "libvirt-bin"
+  group = "libvirtd"
+when "redhat"
+  group = "libvirt"
 end
+
 libvirtd_conf = "#{config_dir}/libvirtd.conf"
+
+describe group(group) do
+  it { should exist }
+end
 
 case os[:family]
 when "ubuntu"
@@ -84,20 +94,11 @@ describe file "#{config_dir}/libvirtd.conf" do
   it { should be_owned_by default_user }
   it { should be_grouped_into os[:family] == "redhat" ? "daemon" : "operator" }
   its(:content) { should match(/^log_level = 2$/) }
-  case os[:family]
-  when "ubuntu"
-    its(:content) { should match(/^unix_sock_group = "libvirtd"$/) }
-    its(:content) { should match(/^unix_sock_ro_perms = "0777"$/) }
-    its(:content) { should match(/^unix_sock_rw_perms = "0770"$/) }
-    its(:content) { should match(/^auth_unix_ro = "none"$/) }
-    its(:content) { should match(/^auth_unix_rw = "none"$/) }
-  when "redhat"
-    its(:content) { should match(/^unix_sock_group = "libvirt"$/) }
-    its(:content) { should match(/^unix_sock_ro_perms = "0777"$/) }
-    its(:content) { should match(/^unix_sock_rw_perms = "0770"$/) }
-    its(:content) { should match(/^auth_unix_ro = "none"$/) }
-    its(:content) { should match(/^auth_unix_rw = "none"$/) }
-  end
+  its(:content) { should match(/^unix_sock_group = "#{group}"$/) }
+  its(:content) { should match(/^unix_sock_ro_perms = "0777"$/) }
+  its(:content) { should match(/^unix_sock_rw_perms = "0770"$/) }
+  its(:content) { should match(/^auth_unix_ro = "none"$/) }
+  its(:content) { should match(/^auth_unix_rw = "none"$/) }
 end
 
 describe service(service) do

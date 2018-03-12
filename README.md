@@ -11,6 +11,7 @@ None
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `libvirt_package` | Package name of `libvirt` | `{{ __libvirt_package }}` |
+| `libvirt_group` | Group name of `libvirt`, often used for access control on sockets | `{{ __libvirt_group }}` |
 | `libvirt_extra_packages` | List of additional packages to install | `[]` |
 | `libvirt_service` | Service name of `libvirtd` | `{{ __libvirt_service }}` |
 | `libvirt_conf_dir` | Path to configuration directory | `{{ __libvirt_conf_dir }}` |
@@ -33,15 +34,34 @@ This variable is a list of dict. Keys of the dict are explained below.
 ## `libvirt_flags`
 
 This variable is a dict of flags and extra variables for start-up scripts.
-Keys and values are expanded as `key="value"'. See the example below.
+Keys and values are expanded as `key="value"`. See the example below.
+
+## Debian
+
+| Variable | Default |
+|----------|---------|
+| `__libvirt_package` | `libvirt-bin` |
+| `__libvirt_group` | `libvirtd` |
+| `__libvirt_service` | `libvirtd` |
+| `__libvirt_conf_dir` | `/etc/libvirt` |
 
 ## FreeBSD
 
 | Variable | Default |
 |----------|---------|
 | `__libvirt_package` | `libvirt` |
+| `__libvirt_group` | `wheel` |
 | `__libvirt_service` | `libvirtd` |
 | `__libvirt_conf_dir` | `/usr/local/etc/libvirt` |
+
+## RedHat
+
+| Variable | Default |
+|----------|---------|
+| `__libvirt_package` | `libvirt` |
+| `__libvirt_group` | `libvirt` |
+| `__libvirt_service` | `libvirtd` |
+| `__libvirt_conf_dir` | `/etc/libvirt` |
 
 # Dependencies
 
@@ -64,19 +84,11 @@ None
         group: "{% if ansible_os_family == 'RedHat' %}daemon{% else %}operator{% endif %}"
         content: |
           log_level = 2
-          {% if ansible_os_family == 'Debian' %}
-          unix_sock_group = "libvirtd"
+          unix_sock_group = "{{ libvirt_group }}"
           unix_sock_ro_perms = "0777"
           unix_sock_rw_perms = "0770"
           auth_unix_ro = "none"
           auth_unix_rw = "none"
-          {% elif ansible_os_family == 'RedHat' %}
-          unix_sock_group = "libvirt"
-          unix_sock_ro_perms = "0777"
-          unix_sock_rw_perms = "0770"
-          auth_unix_ro = "none"
-          auth_unix_rw = "none"
-          {% endif %}
     libvirt_extra_packages: "{% if ansible_os_family == 'FreeBSD' %}[ 'sysutils/grub2-bhyve' ]{% elif ansible_os_family == 'Debian' %}[ 'qemu-kvm' ]{% elif ansible_os_family == 'RedHat' %}[ 'qemu-kvm' ]{% endif %}"
 
     freebsd_flags:

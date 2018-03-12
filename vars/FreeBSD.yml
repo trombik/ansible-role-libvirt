@@ -1,3 +1,5 @@
 __libvirt_package: libvirt
+# XXX devel/libvirt does not create a unique user for libvirt
+__libvirt_group: wheel
 __libvirt_service: libvirtd
 __libvirt_conf_dir: /usr/local/etc/libvirt
